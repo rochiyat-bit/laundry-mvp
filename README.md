@@ -227,6 +227,32 @@ Staff update status pesanan melalui tahapan:
 - Lihat status real-time tanpa perlu login
 - Lihat detail items dan riwayat status
 
+## Routing & URL Structure
+
+Aplikasi ini menggunakan **React Router v6** dengan **BrowserRouter** untuk client-side routing.
+
+### Available Routes
+
+**Public Routes (No Authentication):**
+- `/login` - Login page
+- `/register` - Registration page
+- `/tracking/:orderNumber` - Public tracking page (contoh: `/tracking/LDR2401070123`)
+
+**Protected Routes (Require Authentication):**
+- `/dashboard` - Dashboard dengan statistik
+- `/orders` - Manajemen orders
+- `/services` - Manajemen layanan dan harga (Admin/Staff only)
+- `/users` - Manajemen user (Admin only)
+
+### URL Path Examples
+
+✅ **Full URL path akan terlihat di browser:**
+- `https://laundryku.com/tracking/LDR2401070123`
+- `https://laundryku.com/dashboard`
+- `https://laundryku.com/orders`
+
+Ini berbeda dengan hash routing (`#/tracking`) - aplikasi ini menggunakan **clean URLs** dengan BrowserRouter.
+
 ## Build for Production
 
 ### Backend
@@ -243,7 +269,42 @@ npm run build
 # Files akan ada di folder dist/
 ```
 
-Deploy folder `dist/` ke static hosting (Vercel, Netlify, dll) dan backend ke service seperti Heroku, Railway, atau DigitalOcean.
+### Deployment Options
+
+#### 1. Netlify / Vercel (Recommended - Zero Config)
+Upload folder `dist/` - sudah include file `_redirects` dan `vercel.json` untuk handle routing otomatis.
+
+```bash
+# Deploy ke Netlify
+netlify deploy --prod --dir=dist
+
+# Deploy ke Vercel
+vercel --prod
+```
+
+#### 2. Apache Server
+File `.htaccess` sudah include di `public/`. Copy ke root directory setelah build.
+
+#### 3. Nginx
+Gunakan config file yang sudah disediakan:
+
+```bash
+# Copy nginx.conf
+cp nginx.conf /etc/nginx/sites-available/laundry
+
+# Atau gunakan Docker
+docker build -t laundry-frontend .
+docker run -p 80:80 laundry-frontend
+```
+
+#### 4. Docker
+```bash
+cd frontend
+docker build -t laundry-frontend .
+docker run -p 80:80 laundry-frontend
+```
+
+**Penting:** Semua konfigurasi deployment sudah include **SPA routing support** agar URL seperti `/tracking/LDR2401070123` berfungsi dengan baik di production.
 
 ## Environment Variables
 
@@ -275,6 +336,22 @@ VITE_API_URL=http://localhost:3000/api
 - Pastikan order sudah tersimpan dengan benar
 - Check console untuk error
 - Pastikan frontend URL sudah benar di backend .env
+
+### Routing / 404 Error di Production
+**Problem:** URL seperti `/tracking/LDR123` mengembalikan 404 saat refresh atau akses langsung.
+
+**Solution:**
+- ✅ **Netlify/Vercel:** File `_redirects` atau `vercel.json` sudah ada - otomatis terhandle
+- ✅ **Nginx:** Pastikan sudah ada `try_files $uri $uri/ /index.html;` di config
+- ✅ **Apache:** File `.htaccess` harus ada di root directory setelah build
+- ✅ **Docker:** Gunakan Dockerfile yang sudah disediakan dengan nginx config
+
+**Development:** URL routing sudah otomatis bekerja dengan `npm run dev`
+
+### URL tidak berubah saat navigasi
+- Pastikan menggunakan `<Link>` dari `react-router-dom`, bukan `<a>` tag
+- Pastikan `BrowserRouter` sudah wrap seluruh App component
+- Check console untuk error dari React Router
 
 ## License
 
