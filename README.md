@@ -71,14 +71,42 @@ cp .env.example .env
 # PORT=3000
 # FRONTEND_URL="http://localhost:5173"
 
-# Generate Prisma Client
-npm run prisma:generate
+# Setup database (generate, migrate, dan seed dalam 1 command)
+npm run db:setup
 
-# Run database migrations
-npm run prisma:migrate
+# ATAU manual step by step:
+# npm run prisma:generate    # Generate Prisma Client
+# npm run prisma:migrate     # Run migrations
+# npm run prisma:seed        # Seed initial data
 
 # (Optional) Open Prisma Studio untuk melihat database
 npm run prisma:studio
+```
+
+#### Seeding Data
+
+Setelah menjalankan `npm run db:setup` atau `npm run prisma:seed`, database akan terisi dengan data awal:
+
+**👤 Default Users:**
+| Role     | Email                  | Password     |
+|----------|------------------------|--------------|
+| Admin    | admin@laundry.com      | admin123     |
+| Staff    | staff@laundry.com      | staff123     |
+| Customer | customer@example.com   | customer123  |
+| Customer | siti@example.com       | customer123  |
+
+**🧺 Services:**
+- Cuci Kering (Rp 7.000/kg)
+- Cuci Setrika (Rp 10.000/kg)
+- Setrika Saja (Rp 5.000/kg)
+- Dry Cleaning (Rp 25.000/pcs)
+- Cuci Sepatu (Rp 15.000/pcs)
+- Cuci Boneka (Rp 20.000/pcs)
+- Cuci Karpet (Rp 12.000/kg)
+- Express 3 Jam (Rp 15.000/kg)
+
+**📦 Sample Orders:**
+- 3 order contoh dengan berbagai status (Delivered, Washing, Pending)
 ```
 
 ### 4. Setup Frontend
@@ -183,46 +211,30 @@ Frontend akan berjalan di http://localhost:5173
 ### Tracking
 - `GET /api/tracking/:orderNumber` - Track order (public, no auth required)
 
-## Default User Credentials
-
-Setelah setup, Anda perlu membuat user pertama melalui endpoint register atau langsung via database.
-
-Contoh membuat admin via Prisma Studio atau SQL:
-
-```sql
-INSERT INTO users (id, email, password, name, role)
-VALUES (
-  gen_random_uuid(),
-  'admin@laundry.com',
-  '$2a$10$...', -- hash dari password menggunakan bcrypt
-  'Admin User',
-  'ADMIN'
-);
-```
-
-Atau register via API kemudian update role di database.
-
 ## Workflow Aplikasi
 
-### 1. Setup Services
-Admin/Staff menambahkan layanan laundry beserta harganya (misalnya: Cuci Kering, Setrika, dll)
+### 1. Login
+Login menggunakan salah satu user yang sudah di-seed (lihat tabel Default Users di atas)
 
-### 2. Create Order
+### 2. Setup Services (Opsional - sudah ada dari seeding)
+Admin/Staff bisa menambahkan layanan baru atau edit yang sudah ada
+
+### 3. Create Order
 - Customer atau Staff membuat pesanan
 - Pilih layanan dan jumlah
 - Sistem menghitung total otomatis
 - Order dibuat dengan status PENDING
 
-### 3. QR Code Generation
+### 4. QR Code Generation
 - Sistem otomatis generate QR code untuk setiap pesanan
 - QR code berisi link ke tracking page
 - QR code dapat di-download
 
-### 4. Order Processing
+### 5. Order Processing
 Staff update status pesanan melalui tahapan:
 - PENDING → PROCESSING → WASHING → DRYING → IRONING → READY → DELIVERED
 
-### 5. Order Tracking
+### 6. Order Tracking
 - Customer scan QR code atau akses tracking URL
 - Lihat status real-time tanpa perlu login
 - Lihat detail items dan riwayat status
